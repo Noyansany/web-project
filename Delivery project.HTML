@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delivery Productivity Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --card: rgba(255,255,255,0.6);
+  --primary:#6366f1;
+  --success:#22c55e;
+  --warning:#f59e0b;
+  --danger:#ef4444;
+  --text-dark:#0f172a;
+  --badge-day:#22c55e;
+  --badge-evening:#f59e0b;
+  --badge-night:#475569;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif;}
+body{background: linear-gradient(135deg, #d0f4f7, #a0e4f1, #80d4ea);color: var(--text-dark);padding: 10px;font-size:14px;}
+h1{text-align:center;margin-bottom: 20px;font-size:2rem;background: linear-gradient(90deg,#6366f1,#22c55e,#f59e0b);-webkit-background-clip: text;-webkit-text-fill-color: transparent;}
+.container{background: var(--card);backdrop-filter: blur(14px);border-radius:15px;padding:15px;max-width:1400px;margin:auto;box-shadow:0 15px 40px rgba(0,0,0,0.2);}
+.inputs{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:10px;}
+input, select{padding:6px 10px;border-radius:10px;border:1px solid #e5e7eb;font-size:13px;background: rgba(255,255,255,0.7);color: var(--text-dark);}
+input::placeholder, select option{color:#555;}
+button{padding:6px 12px;border:none;border-radius:12px;color:#fff;font-weight:600;cursor:pointer;margin-right:4px;font-size:13px;transition: all .3s ease;}
+button:hover{transform: scale(1.05);box-shadow: 0 4px 12px rgba(0,0,0,0.2);}
+.add{background: var(--success);}
+.clear{background: var(--primary);}
+.excel{background:#2563eb;}
+.edit{background: var(--warning);}
+.delete{background: var(--danger);}
+.wrap{overflow-x:auto;margin-top:15px;border-radius:12px;box-shadow: 0 8px 20px rgba(0,0,0,0.15);}
+table{width:100%;border-collapse: collapse;font-size:13px;text-align:center;}
+th,td{padding:6px 8px;white-space:nowrap;}
+th{position: sticky;top:0;background: linear-gradient(90deg,#6366f1,#22c55e,#f59e0b);color:#fff;font-weight:600;}
+tbody tr:nth-child(even){background: rgba(255,255,255,0.3);}
+tbody tr:hover{background: rgba(255,255,255,0.45);}
+.badge{padding:3px 8px;border-radius:999px;color:#fff;font-weight:600;font-size:12px;}
+.day{background: var(--badge-day);}
+.evening{background: var(--badge-evening);}
+.night{background: var(--badge-night);}
+.ach-arrow{display:inline-flex;align-items:center;font-weight:600;}
+.ach-arrow::after{content: '⬆';margin-left:3px;color: var(--success);}
+.ach-arrow.down::after{content:'⬇';color: var(--danger);}
+.zone th{background: linear-gradient(90deg,#4c1d95,#9333ea);}
+.month th{background: linear-gradient(90deg,#1e3a8a,#3b82f6);}
+a{color:#0f172a;text-decoration:none;font-weight:600;}
+a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+<h1>📊 Delivery Productivity Dashboard</h1>
+<div class="container">
+<div class="inputs">
+<input type="text" id="searchId" placeholder="Search by Employee ID" onkeyup="applyFilters()">
+<select id="searchShift" onchange="applyFilters()">
+<option value="">All Shifts</option><option>Day</option><option>Evening</option><option>Night</option></select>
+<select id="searchZone" onchange="applyFilters()">
+<option value="">All Zones</option>
+<option>Zone-01 | Building-02</option>
+<option>Zone-02 | Shed-03</option>
+<option>Zone-02 | Shed-04</option>
+<option>Zone-03 | Shed-05</option>
+<option>Zone-04 | Building-06</option>
+<option>Zone-05 | Marcel Point</option>
+<option>Zone-06 | AC Point</option></select>
+<input type="date" id="startDate" onchange="applyFilters()">
+<input type="date" id="endDate" onchange="applyFilters()">
+</div>
+<div class="inputs">
+<input id="empId" placeholder="Employee ID">
+<input id="empName" placeholder="Employee Name">
+<select id="shift"><option value="">Shift</option><option>Day</option><option>Evening</option><option>Night</option></select>
+<select id="zone"><option value="">Zone / Shed</option>
+<option>Zone-01 | Building-02</option>
+<option>Zone-02 | Shed-03</option>
+<option>Zone-02 | Shed-04</option>
+<option>Zone-03 | Shed-05</option>
+<option>Zone-04 | Building-06</option>
+<option>Zone-05 | Marcel Point</option>
+<option>Zone-06 | AC Point</option></select>
+<input type="number" id="manpower" placeholder="Manpower">
+<select id="hours"><option value="">Hours</option><option>8</option><option>10</option><option>11</option><option>12</option></select>
+<select id="otHour"><option value="0">OT Hour</option><option>2</option><option>3</option><option>4</option></select>
+<input type="number" id="otEmp" placeholder="OT Employee">
+<input type="number" id="vehicleQty" placeholder="Vehicle Qty">
+<input type="number" id="refQty" placeholder="Fridge Qty">
+<input type="number" id="acQty" placeholder="AC Qty">
+<input type="date" id="entryDate">
+</div>
+<br>
+<button class="add" onclick="addData()">➕ Add</button>
+<button class="clear" onclick="clearFields()">🧹 Clear</button>
+<button class="excel" onclick="downloadExcel()">⬇ Excel</button>
+<div class="wrap">
+<table><thead><tr><th>Date</th><th>ID</th><th>Name</th><th>Shift</th><th>Zone</th><th>MP</th><th>Hr</th><th>OT</th><th>Veh</th><th>Fridge</th><th>AC</th><th>Delivery</th><th>ManHr</th><th>Ach%</th><th>Action</th></tr></thead>
+<tbody id="tableBody"></tbody></table></div>
+<div class="wrap">
+<h4>Employee Summary</h4>
+<table class="zone"><thead><tr><th>Employee ID</th><th>Name</th><th>Fridge</th><th>AC</th><th>Vehicle</th><th>Total Delivery</th><th>Achievement %</th></tr></thead>
+<tbody id="employeeSummary"></tbody></table></div>
+<div class="wrap">
+<h4>Shed / Building Summary</h4>
+<table class="zone"><thead><tr><th>Shed / Building</th><th>Fridge</th><th>AC</th><th>Vehicle</th><th>Total Delivery</th><th>Achievement %</th></tr></thead>
+<tbody id="shedSummary"></tbody></table></div>
+<div class="wrap">
+<h4>Monthly Dashboard</h4>
+<table class="month"><thead><tr><th>Month</th><th>Delivery</th><th>Fridge</th><th>AC</th><th>Vehicle</th><th>Man Hour</th></tr></thead>
+<tbody id="monthSummary"></tbody></table></div>
+</div>
+<script>
+const KEY="delivery_dashboard";
+let editIndex=null;
+function target(hr){return {8:200/7,10:250/7,11:275/7,12:300/7}[hr]||0;}
+function data(){return JSON.parse(localStorage.getItem(KEY)||"[]");}
+function save(d){localStorage.setItem(KEY,JSON.stringify(d));}
+function clearFields(){['empId','empName','shift','zone','manpower','hours','otHour','otEmp','vehicleQty','refQty','acQty','entryDate'].forEach(id=>document.getElementById(id).value='');document.getElementById('entryDate').value=new Date().toISOString().split('T')[0];editIndex=null;applyFilters();}
+function addData(){
+let d=data();
+let row={date:document.getElementById('entryDate').value,id:document.getElementById('empId').value,name:document.getElementById('empName').value,shift:document.getElementById('shift').value,zone:document.getElementById('zone').value,mp:+document.getElementById('manpower').value,hr:+document.getElementById('hours').value,otH:+document.getElementById('otHour').value,otE:+document.getElementById('otEmp').value||0,veh:+document.getElementById('vehicleQty').value||0,ref:+document.getElementById('refQty').value||0,ac:+document.getElementById('acQty').value||0};
+if(!row.id||!row.name||!row.shift||!row.zone||row.mp<=0||row.hr<=0){alert('Mandatory field missing');return;}
+if(editIndex!==null){d[editIndex]=row;editIndex=null;}else d.push(row);
+save(d);clearFields();}
+function applyFilters(){
+let id=document.getElementById('searchId').value.toLowerCase();
+let shift=document.getElementById('searchShift').value;
+let zone=document.getElementById('searchZone').value;
+let start=document.getElementById('startDate').value;
+let end=document.getElementById('endDate').value;
+render(id,shift,zone,start,end);
+}
+function render(fid='',fshift='',fzone='',start='',end=''){
+let d=data();
+let filtered=d.filter(r=>(!fid||r.id.toLowerCase().includes(fid))&&(!fshift||r.shift===fshift)&&(!fzone||r.zone===fzone)&&(!start||r.date>=start)&&(!end||r.date<=end));
+let tbody=document.getElementById('tableBody');tbody.innerHTML='';
+filtered.forEach((r,i)=>{
+let del=r.ref+r.ac;let mh=(r.mp*r.hr)+(r.otH*r.otE);let ach=(target(r.hr)*r.mp)?(del/(target(r.hr)*r.mp))*100:0;
+let b=r.shift=='Day'?'day':r.shift=='Evening'?'evening':'night';
+let arrowClass=ach>=100?'ach-arrow':'ach-arrow down';
+tbody.innerHTML+=`<tr><td>${r.date}</td><td><a href='#' onclick="filterByID('${r.id}')">${r.id}</a></td><td>${r.name}</td><td><span class='badge ${b}'>${r.shift}</span></td><td>${r.zone}</td><td>${r.mp}</td><td>${r.hr}</td><td>${r.otH}×${r.otE}</td><td>${r.veh}</td><td>${r.ref}</td><td>${r.ac}</td><td>${del}</td><td>${mh.toFixed(1)}</td><td><span class='${arrowClass}'>${ach.toFixed(1)}%</span></td><td><button class='edit' onclick='editRow(${i})'>✏</button><button class='delete' onclick='deleteRow(${i})'>🗑</button></td></tr>`;
+});
+summarizeEmployees(filtered);summarizeShed(filtered);summarizeMonth(filtered);
+}
+function editRow(i){let r=data()[i];editIndex=i;['empId','empName','shift','zone','manpower','hours','otHour','otEmp','vehicleQty','refQty','acQty','entryDate'].forEach(k=>document.getElementById(k).value=r[k]);}
+function deleteRow(i){let d=data();d.splice(i,1);save(d);applyFilters();}
+function summarizeEmployees(arr){let sum={};arr.forEach(r=>{if(!sum[r.id])sum[r.id]={name:r.name,ref:0,ac:0,veh:0,manHr:0,target:0};sum[r.id].ref+=r.ref;sum[r.id].ac+=r.ac;sum[r.id].veh+=r.veh;sum[r.id].manHr+=(r.mp*r.hr)+(r.otH*r.otE);sum[r.id].target+=target(r.hr)*r.mp;});
+let tbody=document.getElementById('employeeSummary');tbody.innerHTML='';for(let k in sum){let total=sum[k].ref+sum[k].ac;let ach=(sum[k].target>0)?(total/sum[k].target)*100:0;tbody.innerHTML+=`<tr><td><a href='#' onclick="filterByID('${k}')">${k}</a></td><td>${sum[k].name}</td><td>${sum[k].ref}</td><td>${sum[k].ac}</td><td>${sum[k].veh}</td><td>${total}</td><td>${ach.toFixed(1)}%</td></tr>`;}}
+function summarizeShed(arr){let sum={};arr.forEach(r=>{let shed=r.zone.split('|')[1].trim();if(!sum[shed])sum[shed]={ref:0,ac:0,veh:0,manHr:0,target:0};sum[shed].ref+=r.ref;sum[shed].ac+=r.ac;sum[shed].veh+=r.veh;sum[shed].manHr+=(r.mp*r.hr)+(r.otH*r.otE);sum[shed].target+=target(r.hr)*r.mp;});
+let tbody=document.getElementById('shedSummary');tbody.innerHTML='';for(let k in sum){let total=sum[k].ref+sum[k].ac;let ach=(sum[k].target>0)?(total/sum[k].target)*100:0;tbody.innerHTML+=`<tr><td>${k}</td><td>${sum[k].ref}</td><td>${sum[k].ac}</td><td>${sum[k].veh}</td><td>${total}</td><td>${ach.toFixed(1)}%</td></tr>`;}}
+function summarizeMonth(arr){let sum={};arr.forEach(r=>{let m=r.date.slice(0,7);if(!sum[m])sum[m]={d:0,r:0,a:0,v:0,mh:0};sum[m].d+=r.ref+r.ac;sum[m].r+=r.ref;sum[m].a+=r.ac;sum[m].v+=r.veh;sum[m].mh+=r.mp*r.hr+r.otH*r.otE;});
+let tbody=document.getElementById('monthSummary');tbody.innerHTML='';for(let k in sum){tbody.innerHTML+=`<tr><td>${k}</td><td>${sum[k].d}</td><td>${sum[k].r}</td><td>${sum[k].a}</td><td>${sum[k].v}</td><td>${sum[k].mh.toFixed(1)}</td></tr>`;}}
+function filterByID(id){document.getElementById('searchId').value=id;applyFilters();}
+function downloadExcel(){let csv=[];document.querySelectorAll('table').forEach(t=>{t.querySelectorAll('tr').forEach(tr=>{csv.push([...tr.cells].map(c=>c.innerText).join(','));});});let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv.join('\n')],{type:'text/csv'}));a.download='Delivery_Dashboard.csv';a.click();}
+window.onload=()=>{document.getElementById('entryDate').value=new Date().toISOString().split('T')[0];applyFilters();};
+</script>
+</body>
+</html>
